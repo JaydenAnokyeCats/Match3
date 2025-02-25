@@ -5,10 +5,18 @@ using System.Data.Common;
 using System.Numerics;
 using UnityEngine;
 
+public enum GameState{
+    wait,
+    move
+}
+
+
 public class Board : MonoBehaviour
 {
+    public GameState currentState = GameState.move;
     public int width;
     public int height;
+    public int offSet;
     public GameObject tilePrefab;
     // The Private keyword means that you can only access that method within the class it was defined in.
     public GameObject[] dots;
@@ -28,7 +36,7 @@ public class Board : MonoBehaviour
         // First condition (int i = 0;) creates the variable, the Second contition (i < width;) is the requirement needed for the loop to end, and the Third condition (i++) increases it
         for (int i = 0; i < width; i++){
             for (int j = 0; j < height; j++){
-               UnityEngine.Vector2 tempPosition = new UnityEngine.Vector2(i,j);
+               UnityEngine.Vector2 tempPosition = new UnityEngine.Vector2(i,j + offSet);
                GameObject backgroundTile = Instantiate(tilePrefab, tempPosition, UnityEngine.Quaternion.identity) as GameObject;
                backgroundTile.transform.parent = this.transform; // Sets the parent of the GameObject the board object
                backgroundTile.name = "(" + i + "," + j + ")";
@@ -42,6 +50,8 @@ public class Board : MonoBehaviour
                maxIterations = 0;
 
                GameObject dot = Instantiate(dots[dotToUse], tempPosition, UnityEngine.Quaternion.identity);
+               dot.GetComponent<Dot>().row = j;
+               dot.GetComponent<Dot>().column = i;
                dot.transform.parent = this.transform;
                dot.name = "(" + i + "," + j + ")";
                allDots[i,j] = dot;
@@ -115,11 +125,12 @@ public class Board : MonoBehaviour
         for (int i = 0; i < width; i++){
             for (int j = 0; j < height; j++){
                 if (allDots[i,j] == null){
-                    UnityEngine.Vector2 tempPosition = new UnityEngine.Vector2(i,j);
+                    UnityEngine.Vector2 tempPosition = new UnityEngine.Vector2(i,j + offSet);
                     int dotToUse = Random.Range(0, dots.Length);
                     GameObject piece = Instantiate(dots[dotToUse], tempPosition, UnityEngine.Quaternion.identity);
                     allDots[i,j] = piece;
-
+                    piece.GetComponent<Dot>().row = j;
+                    piece.GetComponent<Dot>().column = i;
 
                 }
 
@@ -148,5 +159,8 @@ public class Board : MonoBehaviour
             yield return new WaitForSeconds(.25f);
             DestroyMatches();
         }
+        //after everything above has run, initiates a "pause"
+        yield return new WaitForSeconds(.5f); 
+        currentState = GameState.move;
     }
 }
